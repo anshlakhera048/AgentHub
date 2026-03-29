@@ -1,0 +1,18 @@
+# Java
+backend/target/
+*.class
+*.jar
+*.log
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Docker
+*.env
