@@ -92,6 +92,16 @@ public class AgentService {
                 .toList();
     }
 
+    @Transactional
+    public void deleteSession(UUID sessionId) {
+        if (!sessionRepository.existsById(sessionId)) {
+            throw new IllegalArgumentException("Session not found: " + sessionId);
+        }
+        messageRepository.deleteBySessionId(sessionId);
+        sessionRepository.deleteById(sessionId);
+        log.info("Deleted session '{}' and its messages", sessionId);
+    }
+
     private void persistMessage(UUID sessionId, String role, String content,
                                 String agentName, Long latencyMs) {
         MessageEntity message = new MessageEntity();

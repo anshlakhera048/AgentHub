@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface MessageRepository extends JpaRepository<MessageEntity, UUID> {
 
     List<MessageEntity> findBySessionIdOrderByTimestampAsc(UUID sessionId);
+
+    void deleteBySessionId(UUID sessionId);
 }

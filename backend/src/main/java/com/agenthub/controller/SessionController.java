@@ -42,4 +42,11 @@ public class SessionController {
         log.info("GET /api/sessions?userId={}", userId);
         return ResponseEntity.ok(agentService.getUserSessions(userId));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSession(@PathVariable UUID id) {
+        log.info("DELETE /api/sessions/{}", id);
+        agentService.deleteSession(id);
+        return ResponseEntity.noContent().build();
+    }
 }

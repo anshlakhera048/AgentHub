@@ -8,19 +8,41 @@ import './App.css';
 export default function App() {
   const [agents, setAgents] = useState([]);
   const [selectedAgent, setSelectedAgent] = useState('');
-  const [sessionId, setSessionId] = useState(null);
+  const [sessionId, setSessionId] = useState(() => {
+    return localStorage.getItem('agenthub_sessionId') || null;
+  });
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [sessionsKey, setSessionsKey] = useState(0);
 
   useEffect(() => {
     api.getAgents()
       .then((data) => {
         setAgents(data);
-        if (data.length > 0) setSelectedAgent(data[0].name);
+        if (data.length > 0 && !selectedAgent) setSelectedAgent(data[0].name);
       })
       .catch((err) => setError('Failed to load agents: ' + err.message));
   }, []);
+
+  // Restore session history on mount if a sessionId was persisted
+  useEffect(() => {
+    if (sessionId) {
+      api.getSessionHistory(sessionId)
+        .then((history) => {
+          setMessages(history);
+          const savedAgent = localStorage.getItem('agenthub_agentName');
+          if (savedAgent) setSelectedAgent(savedAgent);
+        })
+        .catch(() => {
+          // Session no longer exists in DB — clear stale reference
+          localStorage.removeItem('agenthub_sessionId');
+          localStorage.removeItem('agenthub_agentName');
+          setSessionId(null);
+          setMessages([]);
+        });
+    }
+  }, []); // run once on mount
 
   const handleNewSession = async () => {
     if (!selectedAgent) return;
@@ -29,7 +51,10 @@ export default function App() {
       setError(null);
       const session = await api.createSession(selectedAgent);
       setSessionId(session.id);
+      localStorage.setItem('agenthub_sessionId', session.id);
+      localStorage.setItem('agenthub_agentName', selectedAgent);
       setMessages([]);
+      setSessionsKey((k) => k + 1);
     } catch (err) {
       setError('Failed to create session: ' + err.message);
     } finally {
@@ -67,16 +92,35 @@ export default function App() {
     }
   };
 
-  const handleLoadSession = async (sid) => {
+  const handleLoadSession = async (sid, agentName) => {
     try {
       setLoading(true);
       const history = await api.getSessionHistory(sid);
       setSessionId(sid);
       setMessages(history);
+      if (agentName) setSelectedAgent(agentName);
+      localStorage.setItem('agenthub_sessionId', sid);
+      if (agentName) localStorage.setItem('agenthub_agentName', agentName);
     } catch (err) {
       setError('Failed to load session: ' + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteSession = async (sid) => {
+    try {
+      await api.deleteSession(sid);
+      // If deleting the active session, clear it
+      if (sid === sessionId) {
+        setSessionId(null);
+        setMessages([]);
+        localStorage.removeItem('agenthub_sessionId');
+        localStorage.removeItem('agenthub_agentName');
+      }
+      setSessionsKey((k) => k + 1);
+    } catch (err) {
+      setError('Failed to delete session: ' + err.message);
     }
   };
 
@@ -97,7 +141,12 @@ export default function App() {
           <button className="btn-primary" onClick={handleNewSession} disabled={loading}>
             + New Session
           </button>
-          <SessionPanel onLoadSession={handleLoadSession} />
+          <SessionPanel
+            onLoadSession={handleLoadSession}
+            onDeleteSession={handleDeleteSession}
+            refreshKey={sessionsKey}
+            activeSessionId={sessionId}
+          />
         </aside>
 
         <main className="main-content">

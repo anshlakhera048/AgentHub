@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import './SessionPanel.css';
 
-export default function SessionPanel({ onLoadSession }) {
+export default function SessionPanel({ onLoadSession, onDeleteSession, refreshKey, activeSessionId }) {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +20,7 @@ export default function SessionPanel({ onLoadSession }) {
 
   useEffect(() => {
     loadSessions();
-  }, []);
+  }, [refreshKey]);
 
   return (
     <div className="session-panel">
@@ -35,16 +35,30 @@ export default function SessionPanel({ onLoadSession }) {
           <p className="no-sessions">No sessions yet</p>
         )}
         {sessions.map((session) => (
-          <button
+          <div
             key={session.id}
-            className="session-item"
-            onClick={() => onLoadSession(session.id)}
+            className={`session-item${session.id === activeSessionId ? ' session-active' : ''}`}
           >
-            <span className="session-agent">{session.agentName}</span>
-            <span className="session-date">
-              {new Date(session.createdAt).toLocaleDateString()}
-            </span>
-          </button>
+            <button
+              className="session-info"
+              onClick={() => onLoadSession(session.id, session.agentName)}
+            >
+              <span className="session-agent">{session.agentName}</span>
+              <span className="session-date">
+                {new Date(session.createdAt).toLocaleDateString()}
+              </span>
+            </button>
+            <button
+              className="btn-delete-session"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteSession(session.id);
+              }}
+              title="Delete session"
+            >
+              ✕
+            </button>
+          </div>
         ))}
       </div>
     </div>

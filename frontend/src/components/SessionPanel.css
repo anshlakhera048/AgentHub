@@ -45,11 +45,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 10px;
+  padding: 0;
   background: var(--bg-tertiary);
   border: 1px solid transparent;
   border-radius: 6px;
-  cursor: pointer;
   color: var(--text-primary);
   font-size: 0.8rem;
   text-align: left;
@@ -58,6 +57,48 @@
 
 .session-item:hover {
   border-color: var(--accent);
+}
+
+.session-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-tertiary));
+}
+
+.session-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: inherit;
+  text-align: left;
+  min-width: 0;
+}
+
+.btn-delete-session {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 6px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.session-item:hover .btn-delete-session {
+  opacity: 1;
+}
+
+.btn-delete-session:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .session-agent {

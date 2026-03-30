@@ -9,6 +9,7 @@ async function request(url, options = {}) {
     const error = await res.json().catch(() => ({ message: res.statusText }));
     throw new Error(error.message || `Request failed: ${res.status}`);
   }
+  if (res.status === 204) return null;
   return res.json();
 }
 
@@ -30,4 +31,7 @@ export const api = {
   getSessionHistory: (sessionId) => request(`/sessions/${sessionId}/history`),
 
   getUserSessions: (userId = 'default') => request(`/sessions?userId=${userId}`),
+
+  deleteSession: (sessionId) =>
+    request(`/sessions/${sessionId}`, { method: 'DELETE' }),
 };
